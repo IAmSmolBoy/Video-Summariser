@@ -24,7 +24,7 @@ def prompt(content: str):
         }
     )
         
-    print(f"tokens used: {response.candidates[0]}")
+    print(f"Response generated")
     
     return response.text
 
