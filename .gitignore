@@ -1,0 +1,21 @@
+
+# venv
+__pycache__
+Include
+Lib
+Scripts
+*pyvenv.cfg
+
+# yt-dlp
+share
+*cookies.txt
+
+# env
+*.env
+
+# required files
+*audio.webm.part
+*audio.mp3
+*out.md
+*transcript.txt
+*summaries.md
