@@ -57,19 +57,19 @@ Run the scripts as modules **from the project root** (they import `src.transcrib
 **Full pipeline — download, transcribe, summarise:**
 
 ```bash
-python -m src.summarise "https://www.youtube.com/watch?v=..."
+python src/summarise.py "https://www.youtube.com/watch?v=..."
 ```
 
 **Summarise audio you already have** (place `audio.mp3` in the project root, omit the URL):
 
 ```bash
-python -m src.summarise
+python src/summarise.py
 ```
 
 **Transcribe only (no Gemini key needed):**
 
 ```bash
-python -m src.transcribe "https://www.youtube.com/watch?v=..."
+python src/transcribe.py "https://www.youtube.com/watch?v=..."
 ```
 
 The first argument is treated as a video URL only if it starts with `http`; otherwise the
