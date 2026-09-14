@@ -2,6 +2,7 @@ import os
 import re
 import sys
 from google.genai import Client
+import argparse
 
 
 from src.transcribe import download, transcribe
@@ -69,12 +70,24 @@ def summarise():
 
             
 if __name__ == "__main__":
+
+    # Initialize the parser
+    parser = argparse.ArgumentParser(description="Summariser and transcriber.")
     
-    if len(sys.argv) > 1 and sys.argv[1].startswith("http"):
+    # Optional argument Youtube link
+    parser.add_argument("-l", "--link", type=str, help="Youtube link")
+    
+    # No transcription
+    parser.add_argument("-t", "--transcribe", action='store_false', help="Omit transcription")
+
+    args = parser.parse_args()
+    
+    if  args.link and args.link.startswith("http"):
         download(sys.argv[1])
     
-    transcribe()
-    
+    if args.transcribe:
+        transcribe()
+        
     summarise()
     
     client.close()
