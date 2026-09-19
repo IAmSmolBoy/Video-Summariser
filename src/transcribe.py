@@ -73,7 +73,7 @@ def transcribe(model_size: str = "medium", output_file: str = "./transcript.txt"
 
     # Step 3: Save transcript
     with open(output_file, "w", encoding="utf-8") as f:
-        f.write(full_transcript)
+        f.write(full_transcript.replace(". ", ".\n"))
         
     print(f"\nDone! Saved to {output_file}")
     return full_transcript

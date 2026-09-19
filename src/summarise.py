@@ -42,7 +42,7 @@ def summarise():
         if re.match(r"^\d{1,2}:\d{2}.*$", line):
             continue
 
-        full += line.strip().replace("  ", "\n") + " "
+        full += "".join(line.split())
         
     if len(full) < TOKEN_LIMIT:
         with open("out.md", "a", encoding="utf-8") as f:
