@@ -1,8 +1,9 @@
 import os
 from yt_dlp import YoutubeDL
-from faster_whisper import WhisperModel
+from faster_whisper import BatchedInferencePipeline, WhisperModel
 import sys
 from dotenv import load_dotenv
+from pathlib import Path
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,7 +14,7 @@ def download(url: str):
     print("Downloading audio...")
     ydl_opts = {
         "format": "bestaudio/best",
-        "outtmpl": "audio.%(ext)s",
+        "outtmpl": "audios/%(title)s.%(ext)s",
         "ffmpeg_location": os.getenv("FFMPEG_PATH"),
         'cookiefile': "cookies.txt",
         "postprocessors": [{
@@ -40,12 +41,35 @@ def transcribe(model_size: str = "medium", output_file: str = "./transcript.txt"
     # Step 2: Transcribe with Whisper
     print(f"Loading Whisper ({model_size} model)...")
     model = WhisperModel(model_size, device="auto", compute_type="float16")
-
-    print("Transcribing... (this may take a while for long videos)")
-    segments, _ = model.transcribe("./audio.mp3", language="en", log_progress=True)
     
-    full_transcript = " ".join([segment.text for segment in segments])
-    print(full_transcript)
+    # Wrap in the pipeline for fast chunked processing
+    batched_model = BatchedInferencePipeline(model=model)
+
+    # Specify the directory path
+    dir_path = Path('./audios')
+    
+    full_transcript = ""
+    
+    # Sort files alphbetically
+    audios = sorted([f for f in dir_path.iterdir() if f.is_file()], key=lambda x: x.name)
+
+    # Loop through all files inside it
+    for item in audios:
+        if item.is_file():
+
+            print("Transcribing...")
+            segments, _ = batched_model.transcribe(
+                item,
+                language="en",
+                log_progress=True,
+                batch_size=8,                         # Cap at 8 to prevent 6GB VRAM OOM crashes
+                beam_size=1,                          # Greedy decoding for absolute maximum speed
+                vad_filter=True,                      # Cut out silence to save massive compute time
+                without_timestamps=True               # Drop token overhead for faster generation
+            )
+            
+            full_transcript += " ".join([segment.text for segment in segments]) + "\n"
+            print(full_transcript)
 
     # Step 3: Save transcript
     with open(output_file, "w", encoding="utf-8") as f:

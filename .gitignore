@@ -13,9 +13,12 @@ share
 # env
 *.env
 
-# required files
+# audio input
+audios
 *audio.webm.part
-*audio.mp3
+*.mp3
+
+# required files
 *out.md
 *transcript.txt
 *summaries.md

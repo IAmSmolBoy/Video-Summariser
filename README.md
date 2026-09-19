@@ -79,7 +79,7 @@ scripts expect an existing `audio.mp3`.
 
 All written to the project root:
 
-- **`audio.mp3`** — extracted audio (192 kbps MP3).
+- **`audios/audio.mp3`** — extracted audio (192 kbps MP3).
 - **`transcript.txt`** — full plain-text transcript.
 - **`summaries.md`** — intermediate per-chunk summaries (only created for transcripts over
   ~100,000 characters).
