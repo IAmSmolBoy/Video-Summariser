@@ -4,17 +4,27 @@ from faster_whisper import BatchedInferencePipeline, WhisperModel
 import sys
 from dotenv import load_dotenv
 from pathlib import Path
+import shutil
 
 # Load environment variables from .env file
 load_dotenv()
+    
+AUDIO_DIR = "audios"
 
 def download(url: str):
+    
+    # Delete the folder and all its contents
+    if os.path.exists(AUDIO_DIR):
+        shutil.rmtree(AUDIO_DIR)
+
+    # Recreate the empty folder
+    os.makedirs(AUDIO_DIR)
 
     # Step 1: Download audio only
     print("Downloading audio...")
     ydl_opts = {
         "format": "bestaudio/best",
-        "outtmpl": "audios/%(title)s.%(ext)s",
+        "outtmpl": f"{AUDIO_DIR}/%(title)s.%(ext)s",
         "ffmpeg_location": os.getenv("FFMPEG_PATH"),
         'cookiefile': "cookies.txt",
         "postprocessors": [{
@@ -46,7 +56,7 @@ def transcribe(model_size: str = "medium", output_file: str = "./transcript.txt"
     batched_model = BatchedInferencePipeline(model=model)
 
     # Specify the directory path
-    dir_path = Path('./audios')
+    dir_path = Path(AUDIO_DIR)
     
     full_transcript = ""
     
