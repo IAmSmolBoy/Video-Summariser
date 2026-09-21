@@ -83,7 +83,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if  args.link and args.link.startswith("http"):
-        download(sys.argv[1])
+        download(args.link)
     
     if args.transcribe:
         transcribe()
