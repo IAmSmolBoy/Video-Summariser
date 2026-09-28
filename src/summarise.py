@@ -1,7 +1,6 @@
 import os
 import re
-import sys
-from google.genai import Client
+from google.genai import Client, types
 import argparse
 
 
@@ -11,7 +10,8 @@ from src.transcribe import download, transcribe
 # Only run this block for Gemini Developer API
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 INSTRUCTIONS = "Summarize this chronologically in bullet points with section headers that include an emoji within 5000 characters in raw markdown"
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-3.8-flash"
+THINKING = "medium"
 TOKEN_LIMIT = 100000
 
 
@@ -22,7 +22,13 @@ def prompt(content: str):
         model=MODEL,
         contents={
             "text": f"{content}\n\n{INSTRUCTIONS}"
-        }
+        },
+        config=types.GenerateContentConfig(
+            # Thinking level config
+            thinking_config=types.ThinkingConfig(
+                thinking_level=THINKING  # Options: "low", "medium", "high"
+            )
+        )
     )
         
     print(f"Response generated")
