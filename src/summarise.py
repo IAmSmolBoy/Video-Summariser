@@ -1,7 +1,8 @@
 import os
 import re
-from google.genai import Client, types
+from google.genai import Client, types, errors
 import argparse
+from time import sleep
 
 
 from src.transcribe import download, transcribe
@@ -10,28 +11,35 @@ from src.transcribe import download, transcribe
 # Only run this block for Gemini Developer API
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 INSTRUCTIONS = "Summarize this chronologically in bullet points with section headers that include an emoji within 5000 characters in raw markdown"
-MODEL = "gemini-3.8-flash"
+MODEL = "gemini-3.7-flash"
 THINKING = "medium"
 TOKEN_LIMIT = 100000
 
 
 def prompt(content: str):
-    print(f"Summarising {len(content)} characters...")
-    
-    response = client.models.generate_content(
-        model=MODEL,
-        contents={
-            "text": f"{content}\n\n{INSTRUCTIONS}"
-        },
-        config=types.GenerateContentConfig(
-            # Thinking level config
-            thinking_config=types.ThinkingConfig(
-                thinking_level=THINKING  # Options: "low", "medium", "high"
+    while True:
+        try:
+            print(f"Summarising {len(content)} characters...")
+            
+            response = client.models.generate_content(
+                model=MODEL,
+                contents={
+                    "text": f"{content}\n\n{INSTRUCTIONS}"
+                },
+                config=types.GenerateContentConfig(
+                    # Thinking level config
+                    thinking_config=types.ThinkingConfig(
+                        thinking_level=THINKING  # Options: "low", "medium", "high"
+                    )
+                )
             )
-        )
-    )
-        
-    print(f"Response generated")
+            
+            print(f"Response generated")
+            break  # Exit the loop if successful
+            
+        except errors.ServerError as e:
+            print(f"Server error: {e.message}. Retrying...")
+            sleep(5)  # Wait for 5 seconds before retrying
     
     return response.text
 
