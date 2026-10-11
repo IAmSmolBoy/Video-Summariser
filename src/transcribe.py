@@ -5,11 +5,17 @@ import sys
 from dotenv import load_dotenv
 from pathlib import Path
 import shutil
+import yaml
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Open the file using a context manager
+with open("config.yaml", "r") as file:
+    # Load the YAML content into a Python dictionary
+    config = yaml.safe_load(file)
     
-AUDIO_DIR = "audios"
+AUDIO_DIR = config["AUDIO_DIR"]
 
 def download(url: str):
     

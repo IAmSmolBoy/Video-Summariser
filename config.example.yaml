@@ -1,0 +1,4 @@
+INSTRUCTIONS: "Summarize this chronologically in bullet points with section headers that include an emoji in raw markdown"
+MODEL: "gemini-3.7-flash"
+THINKING: "medium"
+TOKEN_LIMIT: 100000

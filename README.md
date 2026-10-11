@@ -9,7 +9,7 @@ transcript into raw Markdown with Google Gemini.
 | --- | --- | --- | --- |
 | 1. Download audio | [src/transcribe.py](src/transcribe.py) `download()` | `yt-dlp` + FFmpeg | `audio.mp3` |
 | 2. Transcribe | [src/transcribe.py](src/transcribe.py) `transcribe()` | `faster-whisper` | `transcript.txt` |
-| 3. Summarise | [src/summarise.py](src/summarise.py) `summarise()` | Gemini (`gemini-2.5-flash`) | `out.md` (and `summaries.md` for long videos) |
+| 3. Summarise | [src/summarise.py](src/summarise.py) `summarise()` | Gemini (`MODEL` in `config.yaml`) | `out.md` (and `summaries.md` for long videos) |
 
 Running `src.summarise` executes all three stages. Running `src.transcribe` stops after stage 2.
 
@@ -50,6 +50,27 @@ CUDA_Path=C:\path\to\CUDA\vXX.X\bin\x64
 | `FFMPEG_PATH` | For downloading | Directory containing the FFmpeg binary, passed to `yt-dlp`. |
 | `CUDA_Path` | Optional | Directory of CUDA DLLs; added to the DLL search path for GPU transcription. |
 
+### `config.yaml`
+
+Pipeline settings live in `config.yaml` in the project root. Both scripts read it on
+startup, so it must exist and the scripts must be run from the project root.
+
+```yaml
+INSTRUCTIONS: Summarize this chronologically in bullet points with section headers that include an emoji in raw markdown
+MODEL: gemini-3.7-flash
+THINKING: medium
+TOKEN_LIMIT: 100000
+AUDIO_DIR: audios
+```
+
+| Key | Used by | Purpose |
+| --- | --- | --- |
+| `INSTRUCTIONS` | `summarise.py` | Prompt appended to the transcript in each Gemini call. |
+| `MODEL` | `summarise.py` | Gemini model name. |
+| `THINKING` | `summarise.py` | Gemini thinking level: `low`, `medium` or `high`. |
+| `TOKEN_LIMIT` | `summarise.py` | Character count above which the transcript is split into chunks. |
+| `AUDIO_DIR` | `transcribe.py` | Folder the audio is downloaded to (emptied before each download). |
+
 ## Usage
 
 Run the scripts as modules **from the project root** (they import `src.transcribe`):
@@ -79,12 +100,12 @@ scripts expect an existing `audio.mp3`.
 
 All written to the project root:
 
-- **`audios/audio.mp3`** — extracted audio (192 kbps MP3).
+- **`audios/audio.mp3`** — extracted audio (192 kbps MP3); the folder is set by `AUDIO_DIR`.
 - **`transcript.txt`** — full plain-text transcript.
 - **`summaries.md`** — intermediate per-chunk summaries (only created for transcripts over
   ~100,000 characters).
 - **`out.md`** — final Markdown summary: chronological bullet points under emoji section
-  headers, capped at ~5,000 characters. Overwritten on each run.
+  headers (format controlled by `INSTRUCTIONS`). Overwritten on each run.
 
 ## How it works
 
@@ -95,13 +116,12 @@ model size or output path via the `model_size` / `output_file` arguments to `tra
 **Summarisation** ([src/summarise.py](src/summarise.py)) strips timestamp lines
 (`MM:SS ...`) from the transcript, then:
 
-- If under `TOKEN_LIMIT` (100,000 characters) it makes a single Gemini call and writes
+- If under `TOKEN_LIMIT` (100,000 characters by default) it makes a single Gemini call and writes
   `out.md`.
 - Otherwise it splits the text into ~100,000-character chunks on word boundaries, summarises
   each chunk into `summaries.md`, then summarises that combined file into `out.md`.
 
-The prompt, model (`gemini-2.5-flash`), and character limit are constants at the top of
-`summarise.py`.
+The prompt, model, thinking level and character limit are set in `config.yaml`.
 
 ## Troubleshooting
 
@@ -111,6 +131,11 @@ The prompt, model (`gemini-2.5-flash`), and character limit are constants at the
   `cookies.txt` in the project root.
 - **Import error for `src.transcribe`** — run the scripts with `python -m src.summarise`
   from the project root, not `python src/summarise.py`.
-- **Summary step fails** — confirm `GEMINI_API_KEY` is set and valid.
+- **Summary step fails** — confirm `GEMINI_API_KEY` is set and valid, and that `MODEL` in
+  `config.yaml` is a valid Gemini model name.
+- **`FileNotFoundError: config.yaml`** — run the scripts from the project root, where
+  `config.yaml` lives.
 - **Slow transcription** — expected on CPU for long videos; set up CUDA and `CUDA_Path`, or
   use a smaller Whisper model.
+- **`TypeError: open() got an unexpected keyword argument 'metadata_errors'`** — the
+  installed PyAV version is too new; downgrade it with `pip install "av<19"`.

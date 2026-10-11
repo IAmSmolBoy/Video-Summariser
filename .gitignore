@@ -10,8 +10,9 @@ Scripts
 share
 *cookies.txt
 
-# env
+# config
 *.env
+config.yaml
 
 # audio input
 audios

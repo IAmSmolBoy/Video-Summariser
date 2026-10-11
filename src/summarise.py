@@ -3,17 +3,18 @@ import re
 from google.genai import Client, types, errors
 import argparse
 from time import sleep
-
-
+import yaml
 from src.transcribe import download, transcribe
 
 
 # Only run this block for Gemini Developer API
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
-INSTRUCTIONS = "Summarize this chronologically in bullet points with section headers that include an emoji within 5000 characters in raw markdown"
-MODEL = "gemini-3.7-flash"
-THINKING = "medium"
-TOKEN_LIMIT = 100000
+
+# Open the file using a context manager
+with open("config.yaml", "r") as file:
+    # Load the YAML content into a Python dictionary
+    config = yaml.safe_load(file)
+
 
 
 def prompt(content: str):
@@ -22,14 +23,14 @@ def prompt(content: str):
             print(f"Summarising {len(content)} characters...")
             
             response = client.models.generate_content(
-                model=MODEL,
+                model=config["MODEL"],
                 contents={
-                    "text": f"{content}\n\n{INSTRUCTIONS}"
+                    "text": f"{content}\n\n{config['INSTRUCTIONS']}"
                 },
                 config=types.GenerateContentConfig(
                     # Thinking level config
                     thinking_config=types.ThinkingConfig(
-                        thinking_level=THINKING  # Options: "low", "medium", "high"
+                        thinking_level=config["THINKING"]  # Options: "low", "medium", "high"
                     )
                 )
             )
@@ -58,14 +59,14 @@ def summarise():
 
         full += "".join(line.split())
         
-    if len(full) < TOKEN_LIMIT:
+    if len(full) < config["TOKEN_LIMIT"]:
         with open("out.md", "a", encoding="utf-8") as f:
             f.write(prompt(full))
         return
 
     summaries = ""
 
-    for i in range(TOKEN_LIMIT - 1000, len(full) - 1000, TOKEN_LIMIT):
+    for i in range(config["TOKEN_LIMIT"] - 1000, len(full) - 1000, config["TOKEN_LIMIT"]):
         for j in range(i, i + 1000):
             if j > len(full) or full[j] == " ":
                 content = full[:j]
